@@ -1,43 +1,32 @@
 #import "MainViewController.h"
 #import "SigningManager.h"
-#import <UIKit/UIKit.h>
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
 @interface MainViewController () <UIDocumentPickerDelegate>
-
 @property (nonatomic, strong) UIScrollView *scrollView;
 @property (nonatomic, strong) UIStackView *stackView;
-
 @property (nonatomic, strong) UILabel *titleLabel;
-
 @property (nonatomic, strong) UIButton *ipaButton;
 @property (nonatomic, strong) UIButton *p12Button;
 @property (nonatomic, strong) UIButton *provButton;
-
 @property (nonatomic, strong) UITextField *passwordField;
 @property (nonatomic, strong) UITextField *bundleIdField;
 @property (nonatomic, strong) UITextField *appNameField;
 @property (nonatomic, strong) UITextField *appVersionField;
-
 @property (nonatomic, strong) UIButton *signButton;
 @property (nonatomic, strong) UITextView *logView;
-
 @property (nonatomic, strong, nullable) NSURL *ipaURL;
 @property (nonatomic, strong, nullable) NSURL *p12URL;
 @property (nonatomic, strong, nullable) NSURL *provURL;
-
 @property (nonatomic, strong, nullable) UIButton *currentPickingButton;
-
 @end
 
 @implementation MainViewController
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-
     self.view.backgroundColor = [UIColor systemBackgroundColor];
     self.title = @"lSign";
-
     [self setupUI];
 }
 
@@ -100,7 +89,6 @@
         self.signButton.backgroundColor = [UIColor systemBlueColor];
         [self.signButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
         self.signButton.layer.cornerRadius = 12.0;
-        self.signButton.contentEdgeInsets = UIEdgeInsetsMake(12, 16, 12, 16);
     }
 
     [self.signButton addTarget:self action:@selector(signTapped) forControlEvents:UIControlEventTouchUpInside];
@@ -127,7 +115,6 @@
         [self.stackView.leadingAnchor constraintEqualToAnchor:self.scrollView.leadingAnchor constant:20],
         [self.stackView.trailingAnchor constraintEqualToAnchor:self.scrollView.trailingAnchor constant:-20],
         [self.stackView.bottomAnchor constraintEqualToAnchor:self.scrollView.bottomAnchor constant:-20],
-
         [self.stackView.widthAnchor constraintEqualToAnchor:self.scrollView.widthAnchor constant:-40],
 
         [self.signButton.heightAnchor constraintEqualToConstant:50],
@@ -149,7 +136,6 @@
         btn.backgroundColor = [UIColor tertiarySystemBackgroundColor];
         [btn setTitleColor:[UIColor labelColor] forState:UIControlStateNormal];
         btn.layer.cornerRadius = 12.0;
-        btn.contentEdgeInsets = UIEdgeInsetsMake(0, 14, 0, 14);
     }
 
     [btn.heightAnchor constraintEqualToConstant:48].active = YES;
@@ -165,7 +151,6 @@
     tf.autocapitalizationType = UITextAutocapitalizationTypeNone;
     tf.autocorrectionType = UITextAutocorrectionTypeNo;
     tf.spellCheckingType = UITextSpellCheckingTypeNo;
-
     [tf.heightAnchor constraintEqualToConstant:48].active = YES;
     return tf;
 }
@@ -174,28 +159,17 @@
 
 - (void)selectIPA {
     self.currentPickingButton = self.ipaButton;
-    [self presentPickerForTypes:@[
-        [UTType typeWithIdentifier:@"com.apple.itunes.ipa"],
-        [UTType filenameExtension:@"ipa"],
-        [UTType typeWithIdentifier:@"public.data"]
-    ]];
+    [self presentPickerForTypes:@[UTTypeData]];
 }
 
 - (void)selectP12 {
     self.currentPickingButton = self.p12Button;
-    [self presentPickerForTypes:@[
-        [UTType filenameExtension:@"p12"],
-        [UTType typeWithIdentifier:@"com.rsa.pkcs-12"],
-        [UTType typeWithIdentifier:@"public.data"]
-    ]];
+    [self presentPickerForTypes:@[UTTypeData]];
 }
 
 - (void)selectProvision {
     self.currentPickingButton = self.provButton;
-    [self presentPickerForTypes:@[
-        [UTType filenameExtension:@"mobileprovision"],
-        [UTType typeWithIdentifier:@"public.data"]
-    ]];
+    [self presentPickerForTypes:@[UTTypeData]];
 }
 
 - (void)presentPickerForTypes:(NSArray<UTType *> *)types {
@@ -241,11 +215,7 @@
     NSString *title = url.lastPathComponent ?: fallback;
 
     if (@available(iOS 15.0, *)) {
-        UIButtonConfiguration *config = button.configuration;
-        if (!config) {
-            config = [UIButtonConfiguration tintedButtonConfiguration];
-            config.cornerStyle = UIButtonConfigurationCornerStyleLarge;
-        }
+        UIButtonConfiguration *config = button.configuration ?: [UIButtonConfiguration tintedButtonConfiguration];
         config.title = title;
         button.configuration = config;
     } else {
@@ -258,24 +228,13 @@
 - (void)signTapped {
     [self.view endEditing:YES];
 
-    if (!self.ipaURL) {
-        [self appendLog:@"Error: Please select an IPA file."];
-        return;
-    }
+    if (!self.ipaURL) { [self appendLog:@"Error: Please select an IPA file."]; return; }
+    if (!self.p12URL) { [self appendLog:@"Error: Please select a P12 certificate."]; return; }
+    if (!self.provURL) { [self appendLog:@"Error: Please select a provisioning profile."]; return; }
 
-    if (!self.p12URL) {
-        [self appendLog:@"Error: Please select a P12 certificate."];
-        return;
-    }
-
-    if (!self.provURL) {
-        [self appendLog:@"Error: Please select a provisioning profile."];
-        return;
-    }
-
-    NSString *password = self.passwordField.text ?: @"";
-    NSString *bundleID = self.bundleIdField.text.length > 0 ? self.bundleIdField.text : nil;
-    NSString *appName = self.appNameField.text.length > 0 ? self.appNameField.text : nil;
+    NSString *password   = self.passwordField.text ?: @"";
+    NSString *bundleID   = self.bundleIdField.text.length   > 0 ? self.bundleIdField.text   : nil;
+    NSString *appName    = self.appNameField.text.length    > 0 ? self.appNameField.text    : nil;
     NSString *appVersion = self.appVersionField.text.length > 0 ? self.appVersionField.text : nil;
 
     [self appendLog:@"Starting signing process..."];
@@ -290,13 +249,11 @@
                                            appName:appName
                                         appVersion:appVersion
                                        logCallback:^(NSString *msg) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [self appendLog:msg];
-            });
+            dispatch_async(dispatch_get_main_queue(), ^{ [self appendLog:msg]; });
         }];
 
         dispatch_async(dispatch_get_main_queue(), ^{
-            [self appendLog:[NSString stringWithFormat:@"Result: %@", result ?: @"Unknown result"]];
+            [self appendLog:[NSString stringWithFormat:@"Result: %@", result ?: @"Unknown"]];
             [self setSigningUIEnabled:YES];
             [self showResultAlert:result];
         });
@@ -304,13 +261,13 @@
 }
 
 - (void)setSigningUIEnabled:(BOOL)enabled {
-    self.signButton.enabled = enabled;
-    self.ipaButton.enabled = enabled;
-    self.p12Button.enabled = enabled;
-    self.provButton.enabled = enabled;
-    self.passwordField.enabled = enabled;
-    self.bundleIdField.enabled = enabled;
-    self.appNameField.enabled = enabled;
+    self.signButton.enabled  = enabled;
+    self.ipaButton.enabled   = enabled;
+    self.p12Button.enabled   = enabled;
+    self.provButton.enabled  = enabled;
+    self.passwordField.enabled  = enabled;
+    self.bundleIdField.enabled  = enabled;
+    self.appNameField.enabled   = enabled;
     self.appVersionField.enabled = enabled;
 
     if (@available(iOS 15.0, *)) {
@@ -327,40 +284,25 @@
 #pragma mark - Logging
 
 - (void)appendLog:(NSString *)message {
-    if (message.length == 0) return;
-
+    if (!message.length) return;
     NSString *current = self.logView.text ?: @"";
-    NSString *newLine = current.length > 0 ? @"\n" : @"";
-    self.logView.text = [current stringByAppendingFormat:@"%@%@", newLine, message];
-
-    NSRange bottom = NSMakeRange(self.logView.text.length - 1, 1);
-    [self.logView scrollRangeToVisible:bottom];
+    self.logView.text = [current stringByAppendingFormat:@"\n%@", message];
+    [self.logView scrollRangeToVisible:NSMakeRange(self.logView.text.length - 1, 1)];
 }
 
 #pragma mark - Result Alert
 
 - (void)showResultAlert:(NSString *)result {
-    NSString *title = @"Done";
-    NSString *message = result ?: @"Unknown result";
-
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:title
-                                                                   message:message
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Done"
+                                                                   message:result ?: @"Unknown result"
                                                             preferredStyle:UIAlertControllerStyleAlert];
-
-    if (result.length > 0 && [[NSFileManager defaultManager] fileExistsAtPath:result]) {
-        [alert addAction:[UIAlertAction actionWithTitle:@"Share"
-                                                  style:UIAlertActionStyleDefault
-                                                handler:^(UIAlertAction * _Nonnull action) {
-            NSURL *fileURL = [NSURL fileURLWithPath:result];
-            UIActivityViewController *activity = [[UIActivityViewController alloc] initWithActivityItems:@[fileURL] applicationActivities:nil];
-            [self presentViewController:activity animated:YES completion:nil];
+    if ([[NSFileManager defaultManager] fileExistsAtPath:result ?: @""]) {
+        [alert addAction:[UIAlertAction actionWithTitle:@"Share" style:UIAlertActionStyleDefault handler:^(UIAlertAction *a) {
+            UIActivityViewController *ac = [[UIActivityViewController alloc] initWithActivityItems:@[[NSURL fileURLWithPath:result]] applicationActivities:nil];
+            [self presentViewController:ac animated:YES completion:nil];
         }]];
     }
-
-    [alert addAction:[UIAlertAction actionWithTitle:@"OK"
-                                              style:UIAlertActionStyleCancel
-                                            handler:nil]];
-
+    [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleCancel handler:nil]];
     [self presentViewController:alert animated:YES completion:nil];
 }
 

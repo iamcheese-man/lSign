@@ -1,5 +1,5 @@
 #import "SigningManager.h"
-#import <ZSign/ZSign.h>
+#import "zsigner.h"
 
 @implementation SigningManager
 
@@ -14,11 +14,6 @@
 
     log(@"Reading input files...");
 
-    NSString *ipaPath       = ipaURL.path;
-    NSString *p12Path       = p12URL.path;
-    NSString *provisionPath = provisionURL.path;
-
-    // Output path — Documents directory
     NSString *outputName = [NSString stringWithFormat:@"signed_%@", ipaURL.lastPathComponent];
     NSString *outputPath = [[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) firstObject]
                             stringByAppendingPathComponent:outputName];
@@ -26,20 +21,20 @@
     log(@"Initializing ZSign...");
 
     ZSigner *signer = [[ZSigner alloc] init];
+    signer.ipaPath       = ipaURL.path;
+    signer.p12Path       = p12URL.path;
+    signer.p12Password   = password;
+    signer.provisionPath = provisionURL.path;
+    signer.outputPath    = outputPath;
 
-    // Configure
-    signer.p12Path        = p12Path;
-    signer.p12Password    = password;
-    signer.provisionPath  = provisionPath;
-
-    if (bundleID.length)   signer.bundleID  = bundleID;
-    if (appName.length)    signer.appName   = appName;
-    if (appVersion.length) signer.appVersion = appVersion;
+    if (bundleID.length)    signer.bundleId  = bundleID;
+    if (appName.length)     signer.appName   = appName;
+    if (appVersion.length)  signer.appVersion = appVersion;
 
     log(@"Signing...");
 
     NSError *error = nil;
-    BOOL success = [signer signIPA:ipaPath outputPath:outputPath error:&error];
+    BOOL success = [signer sign:&error];
 
     if (success) {
         log([NSString stringWithFormat:@"Output: %@", outputPath]);

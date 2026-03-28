@@ -1,0 +1,301 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		B101 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = B001 /* main.m */; };
+		B102 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B002 /* AppDelegate.m */; };
+		B103 /* MainViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B003 /* MainViewController.m */; };
+		B104 /* SigningManager.m in Sources */ = {isa = PBXBuildFile; fileRef = B004 /* SigningManager.m */; };
+		B107 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B007 /* UIKit.framework */; };
+		B108 /* ZSign.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B008 /* ZSign.framework */; };
+		B109 /* ZSign.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = B008 /* ZSign.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		B023 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				B109 /* ZSign.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		B000 /* lSign.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = lSign.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B001 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		B002 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		B002H /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		B003 /* MainViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MainViewController.m; sourceTree = "<group>"; };
+		B003H /* MainViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MainViewController.h; sourceTree = "<group>"; };
+		B004 /* SigningManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SigningManager.m; sourceTree = "<group>"; };
+		B004H /* SigningManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SigningManager.h; sourceTree = "<group>"; };
+		B006 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B007 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		B008 /* ZSign.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ZSign.framework; path = Frameworks/ZSign.framework; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		B020 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B107 /* UIKit.framework in Frameworks */,
+				B108 /* ZSign.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		B030 /* root */ = {
+			isa = PBXGroup;
+			children = (
+				B031 /* lSign */,
+				B033 /* Frameworks */,
+				B032 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		B031 /* lSign */ = {
+			isa = PBXGroup;
+			children = (
+				B001 /* main.m */,
+				B002H /* AppDelegate.h */,
+				B002 /* AppDelegate.m */,
+				B040 /* Views */,
+				B041 /* Signing */,
+				B042 /* Resources */,
+			);
+			path = lSign;
+			sourceTree = "<group>";
+		};
+		B032 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				B000 /* lSign.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		B033 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				B007 /* UIKit.framework */,
+				B008 /* ZSign.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		B040 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				B003H /* MainViewController.h */,
+				B003 /* MainViewController.m */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		B041 /* Signing */ = {
+			isa = PBXGroup;
+			children = (
+				B004H /* SigningManager.h */,
+				B004 /* SigningManager.m */,
+			);
+			path = Signing;
+			sourceTree = "<group>";
+		};
+		B042 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				B006 /* Info.plist */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		B050 /* lSign */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B060 /* Build configuration list for PBXNativeTarget "lSign" */;
+			buildPhases = (
+				B021 /* Sources */,
+				B020 /* Frameworks */,
+				B022 /* Resources */,
+				B023 /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = lSign;
+			productName = lSign;
+			productReference = B000 /* lSign.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		B070 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					B050 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = B061 /* Build configuration list for PBXProject "lSign" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (en, Base);
+			mainGroup = B030;
+			productRefGroup = B032 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				B050 /* lSign */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		B022 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		B021 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B101 /* main.m in Sources */,
+				B102 /* AppDelegate.m in Sources */,
+				B103 /* MainViewController.m in Sources */,
+				B104 /* SigningManager.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		B080 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_BITCODE = NO;
+				FRAMEWORK_SEARCH_PATHS = ("$(PROJECT_DIR)/Frameworks", "$(inherited)");
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("DEBUG=1", "$(inherited)");
+				INFOPLIST_FILE = lSign/Resources/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zziacml.lsign;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				LD_RUNPATH_SEARCH_PATHS = ("@executable_path/Frameworks", "$(inherited)");
+			};
+			name = Debug;
+		};
+		B081 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_BITCODE = NO;
+				FRAMEWORK_SEARCH_PATHS = ("$(PROJECT_DIR)/Frameworks", "$(inherited)");
+				GCC_OPTIMIZATION_LEVEL = s;
+				INFOPLIST_FILE = lSign/Resources/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				ONLY_ACTIVE_ARCH = NO;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zziacml.lsign;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+				LD_RUNPATH_SEARCH_PATHS = ("@executable_path/Frameworks", "$(inherited)");
+			};
+			name = Release;
+		};
+		B082 /* Debug (Project) */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		B083 /* Release (Project) */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				SDKROOT = iphoneos;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		B060 /* Build configuration list for PBXNativeTarget "lSign" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B080 /* Debug */,
+				B081 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B061 /* Build configuration list for PBXProject "lSign" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B082 /* Debug (Project) */,
+				B083 /* Release (Project) */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+	};
+	rootObject = B070 /* Project object */;
+}

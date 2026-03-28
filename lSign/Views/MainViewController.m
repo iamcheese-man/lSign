@@ -152,8 +152,20 @@
     tf.autocorrectionType = UITextAutocorrectionTypeNo;
     tf.spellCheckingType = UITextSpellCheckingTypeNo;
     [tf.heightAnchor constraintEqualToConstant:48].active = YES;
+
+    UIToolbar *toolbar = [[UIToolbar alloc] initWithFrame:CGRectMake(0, 0, 320, 44)];
+    UIBarButtonItem *flex = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
+    UIBarButtonItem *done = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(dismissKeyboard)];
+    toolbar.items = @[flex, done];
+    tf.inputAccessoryView = toolbar;
+
     return tf;
 }
+
+- (void)dismissKeyboard {
+    [self.view endEditing:YES];
+}
+
 
 #pragma mark - File Pickers
 

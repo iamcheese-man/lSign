@@ -1,384 +1,367 @@
+#import "MainViewController.h"
 #import "SigningManager.h"
-#import "zsigner.h"
-#import "minizip/unzip.h"
-#import "minizip/zip.h"
+#import <UIKit/UIKit.h>
+#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
-#import <Foundation/Foundation.h>
+@interface MainViewController () <UIDocumentPickerDelegate>
 
-typedef void (^InternalLogBlock)(NSString *msg);
+@property (nonatomic, strong) UIScrollView *scrollView;
+@property (nonatomic, strong) UIStackView *stackView;
 
-@implementation SigningManager
+@property (nonatomic, strong) UILabel *titleLabel;
 
-#pragma mark - Directory Helpers
+@property (nonatomic, strong) UIButton *ipaButton;
+@property (nonatomic, strong) UIButton *p12Button;
+@property (nonatomic, strong) UIButton *provButton;
 
-+ (BOOL)createDirectoryIfNeeded:(NSString *)path {
-    NSFileManager *fm = [NSFileManager defaultManager];
-    BOOL isDir = NO;
+@property (nonatomic, strong) UITextField *passwordField;
+@property (nonatomic, strong) UITextField *bundleIdField;
+@property (nonatomic, strong) UITextField *appNameField;
+@property (nonatomic, strong) UITextField *appVersionField;
 
-    if ([fm fileExistsAtPath:path isDirectory:&isDir]) {
-        return isDir;
-    }
+@property (nonatomic, strong) UIButton *signButton;
+@property (nonatomic, strong) UITextView *logView;
 
-    return [fm createDirectoryAtPath:path
-         withIntermediateDirectories:YES
-                          attributes:nil
-                               error:nil];
+@property (nonatomic, strong, nullable) NSURL *ipaURL;
+@property (nonatomic, strong, nullable) NSURL *p12URL;
+@property (nonatomic, strong, nullable) NSURL *provURL;
+
+@property (nonatomic, strong, nullable) UIButton *currentPickingButton;
+
+@end
+
+@implementation MainViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+
+    self.view.backgroundColor = [UIColor systemBackgroundColor];
+    self.title = @"lSign";
+
+    [self setupUI];
 }
 
-#pragma mark - Minizip Unzip Helpers
+#pragma mark - UI Setup
 
-+ (BOOL)extractCurrentFileFromZip:(unzFile)zipFile
-                      destination:(NSString *)destinationPath
-                              log:(InternalLogBlock)log
-{
-    char filename[1024] = {0};
-    unz_file_info fileInfo;
-    memset(&fileInfo, 0, sizeof(fileInfo));
+- (void)setupUI {
+    self.scrollView = [[UIScrollView alloc] init];
+    self.scrollView.translatesAutoresizingMaskIntoConstraints = NO;
+    [self.view addSubview:self.scrollView];
 
-    if (unzGetCurrentFileInfo(zipFile, &fileInfo, filename, sizeof(filename), NULL, 0, NULL, 0) != UNZ_OK) {
-        if (log) log(@"Failed to get current ZIP entry info");
-        return NO;
+    self.stackView = [[UIStackView alloc] init];
+    self.stackView.axis = UILayoutConstraintAxisVertical;
+    self.stackView.spacing = 14;
+    self.stackView.alignment = UIStackViewAlignmentFill;
+    self.stackView.distribution = UIStackViewDistributionFill;
+    self.stackView.translatesAutoresizingMaskIntoConstraints = NO;
+    [self.scrollView addSubview:self.stackView];
+
+    self.titleLabel = [[UILabel alloc] init];
+    self.titleLabel.text = @"IPA Signer";
+    self.titleLabel.font = [UIFont boldSystemFontOfSize:28];
+    self.titleLabel.textAlignment = NSTextAlignmentCenter;
+    [self.stackView addArrangedSubview:self.titleLabel];
+
+    self.ipaButton = [self makeFileButtonWithTitle:@"Select IPA"];
+    [self.ipaButton addTarget:self action:@selector(selectIPA) forControlEvents:UIControlEventTouchUpInside];
+    [self.stackView addArrangedSubview:self.ipaButton];
+
+    self.p12Button = [self makeFileButtonWithTitle:@"Select P12"];
+    [self.p12Button addTarget:self action:@selector(selectP12) forControlEvents:UIControlEventTouchUpInside];
+    [self.stackView addArrangedSubview:self.p12Button];
+
+    self.provButton = [self makeFileButtonWithTitle:@"Select Provision"];
+    [self.provButton addTarget:self action:@selector(selectProvision) forControlEvents:UIControlEventTouchUpInside];
+    [self.stackView addArrangedSubview:self.provButton];
+
+    self.passwordField = [self makeTextFieldWithPlaceholder:@"Certificate Password"];
+    self.passwordField.secureTextEntry = YES;
+    [self.stackView addArrangedSubview:self.passwordField];
+
+    self.bundleIdField = [self makeTextFieldWithPlaceholder:@"Optional Bundle ID Override"];
+    [self.stackView addArrangedSubview:self.bundleIdField];
+
+    self.appNameField = [self makeTextFieldWithPlaceholder:@"Optional App Name Override"];
+    [self.stackView addArrangedSubview:self.appNameField];
+
+    self.appVersionField = [self makeTextFieldWithPlaceholder:@"Optional App Version Override"];
+    [self.stackView addArrangedSubview:self.appVersionField];
+
+    self.signButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    self.signButton.translatesAutoresizingMaskIntoConstraints = NO;
+
+    if (@available(iOS 15.0, *)) {
+        UIButtonConfiguration *config = [UIButtonConfiguration filledButtonConfiguration];
+        config.title = @"Sign IPA";
+        config.cornerStyle = UIButtonConfigurationCornerStyleLarge;
+        self.signButton.configuration = config;
+    } else {
+        [self.signButton setTitle:@"Sign IPA" forState:UIControlStateNormal];
+        self.signButton.backgroundColor = [UIColor systemBlueColor];
+        [self.signButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        self.signButton.layer.cornerRadius = 12.0;
+        self.signButton.contentEdgeInsets = UIEdgeInsetsMake(12, 16, 12, 16);
     }
 
-    NSString *entryName = [NSString stringWithUTF8String:filename];
-    if (!entryName) {
-        if (log) log(@"Failed to decode ZIP entry name");
-        return NO;
-    }
+    [self.signButton addTarget:self action:@selector(signTapped) forControlEvents:UIControlEventTouchUpInside];
+    [self.stackView addArrangedSubview:self.signButton];
 
-    NSString *fullPath = [destinationPath stringByAppendingPathComponent:entryName];
+    self.logView = [[UITextView alloc] init];
+    self.logView.translatesAutoresizingMaskIntoConstraints = NO;
+    self.logView.editable = NO;
+    self.logView.font = [UIFont monospacedSystemFontOfSize:13 weight:UIFontWeightRegular];
+    self.logView.backgroundColor = [UIColor secondarySystemBackgroundColor];
+    self.logView.layer.cornerRadius = 12.0;
+    self.logView.text = @"Logs will appear here...";
+    [self.stackView addArrangedSubview:self.logView];
 
-    // Directory
-    if ([entryName hasSuffix:@"/"]) {
-        return [self createDirectoryIfNeeded:fullPath];
-    }
+    UILayoutGuide *guide = self.view.safeAreaLayoutGuide;
 
-    // Ensure parent dir exists
-    NSString *parentDir = [fullPath stringByDeletingLastPathComponent];
-    if (![self createDirectoryIfNeeded:parentDir]) {
-        if (log) log([NSString stringWithFormat:@"Failed to create directory: %@", parentDir]);
-        return NO;
-    }
+    [NSLayoutConstraint activateConstraints:@[
+        [self.scrollView.topAnchor constraintEqualToAnchor:guide.topAnchor],
+        [self.scrollView.leadingAnchor constraintEqualToAnchor:guide.leadingAnchor],
+        [self.scrollView.trailingAnchor constraintEqualToAnchor:guide.trailingAnchor],
+        [self.scrollView.bottomAnchor constraintEqualToAnchor:guide.bottomAnchor],
 
-    if (unzOpenCurrentFile(zipFile) != UNZ_OK) {
-        if (log) log([NSString stringWithFormat:@"Failed to open ZIP entry: %@", entryName]);
-        return NO;
-    }
+        [self.stackView.topAnchor constraintEqualToAnchor:self.scrollView.topAnchor constant:20],
+        [self.stackView.leadingAnchor constraintEqualToAnchor:self.scrollView.leadingAnchor constant:20],
+        [self.stackView.trailingAnchor constraintEqualToAnchor:self.scrollView.trailingAnchor constant:-20],
+        [self.stackView.bottomAnchor constraintEqualToAnchor:self.scrollView.bottomAnchor constant:-20],
 
-    FILE *outFile = fopen([fullPath UTF8String], "wb");
-    if (!outFile) {
-        if (log) log([NSString stringWithFormat:@"Failed to create file: %@", fullPath]);
-        unzCloseCurrentFile(zipFile);
-        return NO;
-    }
+        [self.stackView.widthAnchor constraintEqualToAnchor:self.scrollView.widthAnchor constant:-40],
 
-    void *buffer = malloc(8192);
-    if (!buffer) {
-        fclose(outFile);
-        unzCloseCurrentFile(zipFile);
-        if (log) log(@"Failed to allocate extraction buffer");
-        return NO;
-    }
-
-    BOOL success = YES;
-    int bytesRead = 0;
-
-    do {
-        bytesRead = unzReadCurrentFile(zipFile, buffer, 8192);
-        if (bytesRead < 0) {
-            success = NO;
-            if (log) log([NSString stringWithFormat:@"Failed while reading ZIP entry: %@", entryName]);
-            break;
-        }
-
-        if (bytesRead > 0) {
-            size_t written = fwrite(buffer, 1, bytesRead, outFile);
-            if (written != (size_t)bytesRead) {
-                success = NO;
-                if (log) log([NSString stringWithFormat:@"Failed while writing extracted file: %@", fullPath]);
-                break;
-            }
-        }
-    } while (bytesRead > 0);
-
-    free(buffer);
-    fclose(outFile);
-    unzCloseCurrentFile(zipFile);
-
-    return success;
+        [self.signButton.heightAnchor constraintEqualToConstant:50],
+        [self.logView.heightAnchor constraintEqualToConstant:200]
+    ]];
 }
 
-+ (BOOL)unzipIPAAtPath:(NSString *)ipaPath
-         toDestination:(NSString *)destinationPath
-                   log:(InternalLogBlock)log
-{
-    if (log) log([NSString stringWithFormat:@"Opening IPA with Minizip: %@", ipaPath]);
+- (UIButton *)makeFileButtonWithTitle:(NSString *)title {
+    UIButton *btn = [UIButton buttonWithType:UIButtonTypeSystem];
+    btn.translatesAutoresizingMaskIntoConstraints = NO;
 
-    unzFile zipFile = unzOpen([ipaPath UTF8String]);
-    if (!zipFile) {
-        if (log) log(@"Failed to open IPA as ZIP");
-        return NO;
+    if (@available(iOS 15.0, *)) {
+        UIButtonConfiguration *config = [UIButtonConfiguration tintedButtonConfiguration];
+        config.title = title;
+        config.cornerStyle = UIButtonConfigurationCornerStyleLarge;
+        btn.configuration = config;
+    } else {
+        [btn setTitle:title forState:UIControlStateNormal];
+        btn.backgroundColor = [UIColor tertiarySystemBackgroundColor];
+        [btn setTitleColor:[UIColor labelColor] forState:UIControlStateNormal];
+        btn.layer.cornerRadius = 12.0;
+        btn.contentEdgeInsets = UIEdgeInsetsMake(0, 14, 0, 14);
     }
 
-    int result = unzGoToFirstFile(zipFile);
-    if (result != UNZ_OK) {
-        if (log) log(@"Failed to move to first ZIP entry");
-        unzClose(zipFile);
-        return NO;
-    }
-
-    do {
-        if (![self extractCurrentFileFromZip:zipFile destination:destinationPath log:log]) {
-            unzClose(zipFile);
-            return NO;
-        }
-
-        result = unzGoToNextFile(zipFile);
-    } while (result == UNZ_OK);
-
-    unzClose(zipFile);
-
-    if (result != UNZ_END_OF_LIST_OF_FILE) {
-        if (log) log(@"ZIP traversal ended unexpectedly");
-        return NO;
-    }
-
-    return YES;
+    [btn.heightAnchor constraintEqualToConstant:48].active = YES;
+    return btn;
 }
 
-#pragma mark - Minizip Zip Helpers
+- (UITextField *)makeTextFieldWithPlaceholder:(NSString *)placeholder {
+    UITextField *tf = [[UITextField alloc] init];
+    tf.translatesAutoresizingMaskIntoConstraints = NO;
+    tf.placeholder = placeholder;
+    tf.borderStyle = UITextBorderStyleRoundedRect;
+    tf.clearButtonMode = UITextFieldViewModeWhileEditing;
+    tf.autocapitalizationType = UITextAutocapitalizationTypeNone;
+    tf.autocorrectionType = UITextAutocorrectionTypeNo;
+    tf.spellCheckingType = UITextSpellCheckingTypeNo;
 
-+ (BOOL)addFileAtPath:(NSString *)filePath
-          relativeTo:(NSString *)basePath
-               toZip:(zipFile)zip
-                 log:(InternalLogBlock)log
-{
-    NSFileManager *fm = [NSFileManager defaultManager];
-    BOOL isDir = NO;
-
-    if (![fm fileExistsAtPath:filePath isDirectory:&isDir]) {
-        if (log) log([NSString stringWithFormat:@"Missing file during zip: %@", filePath]);
-        return NO;
-    }
-
-    NSString *relativePath = [filePath substringFromIndex:basePath.length];
-    if ([relativePath hasPrefix:@"/"]) {
-        relativePath = [relativePath substringFromIndex:1];
-    }
-
-    if (isDir) {
-        NSArray *children = [fm contentsOfDirectoryAtPath:filePath error:nil];
-        for (NSString *child in children) {
-            NSString *childPath = [filePath stringByAppendingPathComponent:child];
-            if (![self addFileAtPath:childPath relativeTo:basePath toZip:zip log:log]) {
-                return NO;
-            }
-        }
-        return YES;
-    }
-
-    NSData *data = [NSData dataWithContentsOfFile:filePath];
-    if (!data) {
-        if (log) log([NSString stringWithFormat:@"Failed to read file for zip: %@", filePath]);
-        return NO;
-    }
-
-    zip_fileinfo zipInfo;
-    memset(&zipInfo, 0, sizeof(zipInfo));
-
-    int openResult = zipOpenNewFileInZip(
-        zip,
-        [relativePath UTF8String],
-        &zipInfo,
-        NULL, 0,
-        NULL, 0,
-        NULL,
-        Z_DEFLATED,
-        Z_DEFAULT_COMPRESSION
-    );
-
-    if (openResult != ZIP_OK) {
-        if (log) log([NSString stringWithFormat:@"Failed to add file to zip: %@", relativePath]);
-        return NO;
-    }
-
-    int writeResult = zipWriteInFileInZip(zip, data.bytes, (unsigned int)data.length);
-    zipCloseFileInZip(zip);
-
-    if (writeResult != ZIP_OK) {
-        if (log) log([NSString stringWithFormat:@"Failed to write file into zip: %@", relativePath]);
-        return NO;
-    }
-
-    return YES;
+    [tf.heightAnchor constraintEqualToConstant:48].active = YES;
+    return tf;
 }
 
-+ (BOOL)zipDirectoryAtPath:(NSString *)directoryPath
-              toIPAAtPath:(NSString *)outputIPAPath
-                      log:(InternalLogBlock)log
-{
-    if (log) log([NSString stringWithFormat:@"Creating signed IPA: %@", outputIPAPath]);
+#pragma mark - File Pickers
 
-    zipFile zip = zipOpen([outputIPAPath UTF8String], APPEND_STATUS_CREATE);
-    if (!zip) {
-        if (log) log(@"Failed to create ZIP output file");
-        return NO;
-    }
-
-    BOOL success = [self addFileAtPath:directoryPath
-                            relativeTo:directoryPath
-                                 toZip:zip
-                                   log:log];
-
-    zipClose(zip, NULL);
-    return success;
+- (void)selectIPA {
+    self.currentPickingButton = self.ipaButton;
+    [self presentPickerForTypes:@[
+        [UTType typeWithIdentifier:@"com.apple.itunes.ipa"],
+        [UTType filenameExtension:@"ipa"],
+        [UTType typeWithIdentifier:@"public.data"]
+    ]];
 }
 
-#pragma mark - Main Signing Method
+- (void)selectP12 {
+    self.currentPickingButton = self.p12Button;
+    [self presentPickerForTypes:@[
+        [UTType filenameExtension:@"p12"],
+        [UTType typeWithIdentifier:@"com.rsa.pkcs-12"],
+        [UTType typeWithIdentifier:@"public.data"]
+    ]];
+}
 
-+ (NSString *)signIPA:(NSURL *)ipaURL
-                  p12:(NSURL *)p12URL
-            provision:(NSURL *)provisionURL
-             password:(NSString *)password
-             bundleID:(nullable NSString *)bundleID
-              appName:(nullable NSString *)appName
-           appVersion:(nullable NSString *)appVersion
-           logCallback:(LogCallback)log
-{
-    if (!log) {
-        log = ^(NSString *msg) {
-            NSLog(@"[lSign] %@", msg);
-        };
+- (void)selectProvision {
+    self.currentPickingButton = self.provButton;
+    [self presentPickerForTypes:@[
+        [UTType filenameExtension:@"mobileprovision"],
+        [UTType typeWithIdentifier:@"public.data"]
+    ]];
+}
+
+- (void)presentPickerForTypes:(NSArray<UTType *> *)types {
+    UIDocumentPickerViewController *picker = [[UIDocumentPickerViewController alloc] initForOpeningContentTypes:types];
+    picker.delegate = self;
+    picker.allowsMultipleSelection = NO;
+    [self presentViewController:picker animated:YES completion:nil];
+}
+
+#pragma mark - UIDocumentPickerDelegate
+
+- (void)documentPicker:(UIDocumentPickerViewController *)controller didPickDocumentsAtURLs:(NSArray<NSURL *> *)urls {
+    NSURL *pickedURL = urls.firstObject;
+    if (!pickedURL) return;
+
+    [pickedURL startAccessingSecurityScopedResource];
+
+    if (self.currentPickingButton == self.ipaButton) {
+        self.ipaURL = pickedURL;
+        [self updateButton:self.ipaButton withURL:pickedURL fallback:@"Select IPA"];
+        [self appendLog:[NSString stringWithFormat:@"Selected IPA: %@", pickedURL.lastPathComponent]];
+    } else if (self.currentPickingButton == self.p12Button) {
+        self.p12URL = pickedURL;
+        [self updateButton:self.p12Button withURL:pickedURL fallback:@"Select P12"];
+        [self appendLog:[NSString stringWithFormat:@"Selected P12: %@", pickedURL.lastPathComponent]];
+    } else if (self.currentPickingButton == self.provButton) {
+        self.provURL = pickedURL;
+        [self updateButton:self.provButton withURL:pickedURL fallback:@"Select Provision"];
+        [self appendLog:[NSString stringWithFormat:@"Selected Provision: %@", pickedURL.lastPathComponent]];
     }
 
-    log(@"Reading files...");
+    self.currentPickingButton = nil;
+}
 
-    NSError *error = nil;
-    NSFileManager *fm = [NSFileManager defaultManager];
+- (void)documentPickerWasCancelled:(UIDocumentPickerViewController *)controller {
+    [self appendLog:@"File picking cancelled."];
+    self.currentPickingButton = nil;
+}
 
-    NSData *provData = [NSData dataWithContentsOfURL:provisionURL options:0 error:&error];
-    if (!provData) {
-        return [NSString stringWithFormat:@"Failed to read provision: %@", error.localizedDescription ?: @"Unknown error"];
+#pragma mark - Button Label Updates
+
+- (void)updateButton:(UIButton *)button withURL:(NSURL *)url fallback:(NSString *)fallback {
+    NSString *title = url.lastPathComponent ?: fallback;
+
+    if (@available(iOS 15.0, *)) {
+        UIButtonConfiguration *config = button.configuration;
+        if (!config) {
+            config = [UIButtonConfiguration tintedButtonConfiguration];
+            config.cornerStyle = UIButtonConfigurationCornerStyleLarge;
+        }
+        config.title = title;
+        button.configuration = config;
+    } else {
+        [button setTitle:title forState:UIControlStateNormal];
+    }
+}
+
+#pragma mark - Signing
+
+- (void)signTapped {
+    [self.view endEditing:YES];
+
+    if (!self.ipaURL) {
+        [self appendLog:@"Error: Please select an IPA file."];
+        return;
     }
 
-    NSData *p12Data = [NSData dataWithContentsOfURL:p12URL options:0 error:&error];
-    if (!p12Data) {
-        return [NSString stringWithFormat:@"Failed to read P12: %@", error.localizedDescription ?: @"Unknown error"];
+    if (!self.p12URL) {
+        [self appendLog:@"Error: Please select a P12 certificate."];
+        return;
     }
 
-    NSString *tempDir = [NSTemporaryDirectory() stringByAppendingPathComponent:[[NSUUID UUID] UUIDString]];
-    NSString *payloadDir = [tempDir stringByAppendingPathComponent:@"Payload"];
-    NSString *signedOutputDir = [NSTemporaryDirectory() stringByAppendingPathComponent:@"SignedIPAs"];
+    if (!self.provURL) {
+        [self appendLog:@"Error: Please select a provisioning profile."];
+        return;
+    }
 
-    [fm createDirectoryAtPath:tempDir withIntermediateDirectories:YES attributes:nil error:nil];
-    [fm createDirectoryAtPath:signedOutputDir withIntermediateDirectories:YES attributes:nil error:nil];
+    NSString *password = self.passwordField.text ?: @"";
+    NSString *bundleID = self.bundleIdField.text.length > 0 ? self.bundleIdField.text : nil;
+    NSString *appName = self.appNameField.text.length > 0 ? self.appNameField.text : nil;
+    NSString *appVersion = self.appVersionField.text.length > 0 ? self.appVersionField.text : nil;
 
-    __block NSString *finalResult = nil;
-    __block BOOL didFinish = NO;
+    [self appendLog:@"Starting signing process..."];
+    [self setSigningUIEnabled:NO];
 
-    @try {
-        log(@"Extracting IPA with Minizip...");
-
-        if (![self unzipIPAAtPath:ipaURL.path toDestination:tempDir log:log]) {
-            return @"Failed to unzip IPA";
-        }
-
-        NSArray *contents = [fm contentsOfDirectoryAtPath:payloadDir error:&error];
-        if (!contents) {
-            return [NSString stringWithFormat:@"Failed to read Payload directory: %@", error.localizedDescription ?: @"Unknown error"];
-        }
-
-        NSString *dotApp = nil;
-        for (NSString *item in contents) {
-            if ([[item pathExtension].lowercaseString isEqualToString:@"app"]) {
-                dotApp = item;
-                break;
-            }
-        }
-
-        if (!dotApp) {
-            return @"No .app found inside Payload";
-        }
-
-        NSString *appPath = [payloadDir stringByAppendingPathComponent:dotApp];
-
-        // Update Info.plist
-        if (bundleID || appName || appVersion) {
-            log(@"Updating Info.plist...");
-
-            NSString *plistPath = [appPath stringByAppendingPathComponent:@"Info.plist"];
-            NSMutableDictionary *plist = [NSMutableDictionary dictionaryWithContentsOfFile:plistPath];
-
-            if (plist) {
-                if (bundleID.length > 0) {
-                    plist[@"CFBundleIdentifier"] = bundleID;
-                }
-
-                if (appName.length > 0) {
-                    plist[@"CFBundleDisplayName"] = appName;
-                    plist[@"CFBundleName"] = appName;
-                }
-
-                if (appVersion.length > 0) {
-                    plist[@"CFBundleShortVersionString"] = appVersion;
-                }
-
-                [plist writeToFile:plistPath atomically:YES];
-            } else {
-                log(@"Warning: Info.plist not found or unreadable, skipping plist modifications.");
-            }
-        }
-
-        log(@"Signing extracted .app with ZSigner...");
-
-        dispatch_semaphore_t sem = dispatch_semaphore_create(0);
-
-        NSProgress *progress = [ZSigner signWithAppPath:appPath
-                                                   prov:provData
-                                                    key:p12Data
-                                                   pass:(password ?: @"")
-                                      completionHandler:^(BOOL success, NSError *signError) {
-
-            if (!success) {
-                finalResult = [NSString stringWithFormat:@"Signing failed: %@", signError.localizedDescription ?: @"Unknown signing error"];
-                didFinish = YES;
-                dispatch_semaphore_signal(sem);
-                return;
-            }
-
-            log(@"ZSigner finished successfully.");
-            log(@"Repacking signed app into IPA with Minizip...");
-
-            NSString *baseName = [[ipaURL.lastPathComponent stringByDeletingPathExtension] stringByAppendingString:@"-signed.ipa"];
-            NSString *signedIPAPath = [signedOutputDir stringByAppendingPathComponent:baseName];
-
-            if (![self zipDirectoryAtPath:tempDir toIPAAtPath:signedIPAPath log:log]) {
-                finalResult = @"Signing succeeded, but failed to repackage IPA";
-            } else {
-                finalResult = signedIPAPath;
-            }
-
-            didFinish = YES;
-            dispatch_semaphore_signal(sem);
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        NSString *result = [SigningManager signIPA:self.ipaURL
+                                               p12:self.p12URL
+                                         provision:self.provURL
+                                          password:password
+                                          bundleID:bundleID
+                                           appName:appName
+                                        appVersion:appVersion
+                                       logCallback:^(NSString *msg) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [self appendLog:msg];
+            });
         }];
 
-        if (progress) {
-            log(@"ZSigner returned NSProgress object.");
-        }
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self appendLog:[NSString stringWithFormat:@"Result: %@", result ?: @"Unknown result"]];
+            [self setSigningUIEnabled:YES];
+            [self showResultAlert:result];
+        });
+    });
+}
 
-        dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
+- (void)setSigningUIEnabled:(BOOL)enabled {
+    self.signButton.enabled = enabled;
+    self.ipaButton.enabled = enabled;
+    self.p12Button.enabled = enabled;
+    self.provButton.enabled = enabled;
+    self.passwordField.enabled = enabled;
+    self.bundleIdField.enabled = enabled;
+    self.appNameField.enabled = enabled;
+    self.appVersionField.enabled = enabled;
 
-        if (!didFinish) {
-            return @"Signing did not finish properly";
-        }
-
-        return finalResult ?: @"Unknown signing result";
-
-    } @catch (NSException *exception) {
-        return [NSString stringWithFormat:@"Exception: %@", exception.reason ?: @"Unknown exception"];
-    } @finally {
-        [fm removeItemAtPath:tempDir error:nil];
+    if (@available(iOS 15.0, *)) {
+        UIButtonConfiguration *config = self.signButton.configuration;
+        config.showsActivityIndicator = !enabled;
+        config.title = enabled ? @"Sign IPA" : @"Signing...";
+        self.signButton.configuration = config;
+    } else {
+        [self.signButton setTitle:(enabled ? @"Sign IPA" : @"Signing...") forState:UIControlStateNormal];
+        self.signButton.alpha = enabled ? 1.0 : 0.7;
     }
+}
+
+#pragma mark - Logging
+
+- (void)appendLog:(NSString *)message {
+    if (message.length == 0) return;
+
+    NSString *current = self.logView.text ?: @"";
+    NSString *newLine = current.length > 0 ? @"\n" : @"";
+    self.logView.text = [current stringByAppendingFormat:@"%@%@", newLine, message];
+
+    NSRange bottom = NSMakeRange(self.logView.text.length - 1, 1);
+    [self.logView scrollRangeToVisible:bottom];
+}
+
+#pragma mark - Result Alert
+
+- (void)showResultAlert:(NSString *)result {
+    NSString *title = @"Done";
+    NSString *message = result ?: @"Unknown result";
+
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:title
+                                                                   message:message
+                                                            preferredStyle:UIAlertControllerStyleAlert];
+
+    if (result.length > 0 && [[NSFileManager defaultManager] fileExistsAtPath:result]) {
+        [alert addAction:[UIAlertAction actionWithTitle:@"Share"
+                                                  style:UIAlertActionStyleDefault
+                                                handler:^(UIAlertAction * _Nonnull action) {
+            NSURL *fileURL = [NSURL fileURLWithPath:result];
+            UIActivityViewController *activity = [[UIActivityViewController alloc] initWithActivityItems:@[fileURL] applicationActivities:nil];
+            [self presentViewController:activity animated:YES completion:nil];
+        }]];
+    }
+
+    [alert addAction:[UIAlertAction actionWithTitle:@"OK"
+                                              style:UIAlertActionStyleCancel
+                                            handler:nil]];
+
+    [self presentViewController:alert animated:YES completion:nil];
 }
 
 @end

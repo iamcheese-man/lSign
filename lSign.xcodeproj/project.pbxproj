@@ -14,6 +14,9 @@
 		B107 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B007 /* UIKit.framework */; };
 		B108 /* ZSign.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B008 /* ZSign.dylib */; };
 		B109 /* ZSign.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = B008 /* ZSign.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		B111 /* unzip.c in Sources */ = {isa = PBXBuildFile; fileRef = B201 /* unzip.c */; };
+		B112 /* zip.c in Sources */ = {isa = PBXBuildFile; fileRef = B202 /* zip.c */; };
+		B113 /* ioapi.c in Sources */ = {isa = PBXBuildFile; fileRef = B203 /* ioapi.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -39,6 +42,9 @@
 		B003H /* MainViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MainViewController.h; sourceTree = "<group>"; };
 		B004 /* SigningManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SigningManager.m; sourceTree = "<group>"; };
 		B004H /* SigningManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SigningManager.h; sourceTree = "<group>"; };
+		B201 /* unzip.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = unzip.c; sourceTree = "<group>"; };
+		B202 /* zip.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = zip.c; sourceTree = "<group>"; };
+		B203 /* ioapi.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ioapi.c; sourceTree = "<group>"; };
 		B006 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B007 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		B008 /* ZSign.dylib */ = {isa = PBXFileReference; lastKnownFileType = compiled.mach-o.dylib; name = ZSign.dylib; path = Frameworks/ZSign.dylib; sourceTree = "<group>"; };
@@ -110,8 +116,19 @@
 			children = (
 				B004H /* SigningManager.h */,
 				B004 /* SigningManager.m */,
+				B205 /* minizip */,
 			);
 			path = Signing;
+			sourceTree = "<group>";
+		};
+		B205 /* minizip */ = {
+			isa = PBXGroup;
+			children = (
+				B201 /* unzip.c */,
+				B202 /* zip.c */,
+				B203 /* ioapi.c */,
+			);
+			path = minizip;
 			sourceTree = "<group>";
 		};
 		B042 /* Resources */ = {
@@ -191,6 +208,9 @@
 				B102 /* AppDelegate.m in Sources */,
 				B103 /* MainViewController.m in Sources */,
 				B104 /* SigningManager.m in Sources */,
+				B111 /* unzip.c in Sources */,
+				B112 /* zip.c in Sources */,
+				B113 /* ioapi.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

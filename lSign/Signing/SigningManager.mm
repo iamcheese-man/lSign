@@ -243,7 +243,7 @@ typedef void (^InternalLogBlock)(NSString *msg);
              bundleID:(nullable NSString *)bundleID
               appName:(nullable NSString *)appName
            appVersion:(nullable NSString *)appVersion
-          logCallback:(nullable LogCallback)log
+           logCallback:(LogCallback)log
 {
     if (!log) {
         log = ^(NSString *msg) {

@@ -1,5 +1,6 @@
 #import "MainViewController.h"
 #import "SigningManager.h"
+#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
 typedef NS_ENUM(NSInteger, PickerTarget) {
     PickerTargetIPA,
@@ -12,8 +13,6 @@ typedef NS_ENUM(NSInteger, PickerTarget) {
 @property (nonatomic, strong) NSURL *p12URL;
 @property (nonatomic, strong) NSURL *provisionURL;
 @property (nonatomic, assign) PickerTarget currentTarget;
-
-// UI
 @property (nonatomic, strong) UIButton *ipaButton;
 @property (nonatomic, strong) UIButton *p12Button;
 @property (nonatomic, strong) UIButton *provisionButton;
@@ -46,39 +45,34 @@ typedef NS_ENUM(NSInteger, PickerTarget) {
     stack.translatesAutoresizingMaskIntoConstraints = NO;
     [scroll addSubview:stack];
 
-    // File pickers
     self.ipaButton       = [self makePickerButton:@"Select IPA" tag:PickerTargetIPA];
     self.p12Button       = [self makePickerButton:@"Select P12" tag:PickerTargetP12];
     self.provisionButton = [self makePickerButton:@"Select MobileProvision" tag:PickerTargetProvision];
 
-    // Text fields
     self.passwordField   = [self makeField:@"P12 Password" secure:YES];
     self.bundleIDField   = [self makeField:@"Bundle ID (optional)" secure:NO];
     self.appNameField    = [self makeField:@"App Name (optional)" secure:NO];
     self.appVersionField = [self makeField:@"Version (optional)" secure:NO];
 
-    // Sign button
     self.signButton = [UIButton buttonWithType:UIButtonTypeSystem];
     [self.signButton setTitle:@"Sign IPA" forState:UIControlStateNormal];
     self.signButton.titleLabel.font = [UIFont boldSystemFontOfSize:17];
     self.signButton.backgroundColor = [UIColor systemBlueColor];
     [self.signButton setTitleColor:UIColor.whiteColor forState:UIControlStateNormal];
     self.signButton.layer.cornerRadius = 10;
-    self.signButton.heightAnchor.constraintEqualToConstant(50).active = YES;
+    [self.signButton.heightAnchor constraintEqualToConstant:50].active = YES;
     [self.signButton addTarget:self action:@selector(signTapped) forControlEvents:UIControlEventTouchUpInside];
 
-    // Spinner
     self.spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];
     self.spinner.hidesWhenStopped = YES;
 
-    // Log view
     self.logView = [[UITextView alloc] init];
     self.logView.editable = NO;
     self.logView.font = [UIFont monospacedSystemFontOfSize:12 weight:UIFontWeightRegular];
     self.logView.backgroundColor = [UIColor secondarySystemBackgroundColor];
     self.logView.layer.cornerRadius = 8;
     self.logView.text = @"Logs will appear here...\n";
-    self.logView.heightAnchor.constraintEqualToConstant(200).active = YES;
+    [self.logView.heightAnchor constraintEqualToConstant:200].active = YES;
 
     for (UIView *v in @[
         [self sectionLabel:@"Files"],
@@ -116,8 +110,7 @@ typedef NS_ENUM(NSInteger, PickerTarget) {
     btn.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
     btn.backgroundColor = [UIColor secondarySystemBackgroundColor];
     btn.layer.cornerRadius = 10;
-    btn.contentEdgeInsets = UIEdgeInsetsMake(0, 14, 0, 14);
-    btn.heightAnchor.constraintEqualToConstant(48).active = YES;
+    [btn.heightAnchor constraintEqualToConstant:48].active = YES;
     [btn addTarget:self action:@selector(pickerTapped:) forControlEvents:UIControlEventTouchUpInside];
     return btn;
 }
@@ -128,9 +121,9 @@ typedef NS_ENUM(NSInteger, PickerTarget) {
     tf.secureTextEntry = secure;
     tf.backgroundColor = [UIColor secondarySystemBackgroundColor];
     tf.layer.cornerRadius = 10;
-    tf.leftView = [[UIView alloc] initWithFrame:CGRectMake(0,0,14,0)];
+    tf.leftView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 14, 0)];
     tf.leftViewMode = UITextFieldViewModeAlways;
-    tf.heightAnchor.constraintEqualToConstant(48).active = YES;
+    [tf.heightAnchor constraintEqualToConstant:48].active = YES;
     tf.autocorrectionType = UITextAutocorrectionTypeNo;
     tf.autocapitalizationType = UITextAutocapitalizationTypeNone;
     return tf;
@@ -138,17 +131,7 @@ typedef NS_ENUM(NSInteger, PickerTarget) {
 
 - (void)pickerTapped:(UIButton *)sender {
     self.currentTarget = (PickerTarget)sender.tag;
-    NSArray *types;
-    if (self.currentTarget == PickerTargetIPA) {
-        types = @[@"com.apple.itunes.ipa", @"public.data"];
-    } else if (self.currentTarget == PickerTargetP12) {
-        types = @[@"public.data"];
-    } else {
-        types = @[@"public.data"];
-    }
-    UIDocumentPickerViewController *picker = [[UIDocumentPickerViewController alloc] initForOpeningContentTypes:@[
-        [UTType typeWithIdentifier:@"public.data"]
-    ]];
+    UIDocumentPickerViewController *picker = [[UIDocumentPickerViewController alloc] initForOpeningContentTypes:@[UTTypeData]];
     picker.delegate = self;
     picker.allowsMultipleSelection = NO;
     [self presentViewController:picker animated:YES completion:nil];
@@ -185,10 +168,10 @@ typedef NS_ENUM(NSInteger, PickerTarget) {
     self.signButton.enabled = NO;
     [self log:@"Starting signing..."];
 
-    NSString *password  = self.passwordField.text ?: @"";
-    NSString *bundleID  = self.bundleIDField.text.length  ? self.bundleIDField.text  : nil;
-    NSString *appName   = self.appNameField.text.length   ? self.appNameField.text   : nil;
-    NSString *appVersion= self.appVersionField.text.length? self.appVersionField.text: nil;
+    NSString *password   = self.passwordField.text ?: @"";
+    NSString *bundleID   = self.bundleIDField.text.length   ? self.bundleIDField.text   : nil;
+    NSString *appName    = self.appNameField.text.length    ? self.appNameField.text    : nil;
+    NSString *appVersion = self.appVersionField.text.length ? self.appVersionField.text : nil;
 
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         NSString *result = [SigningManager signIPA:self.ipaURL
@@ -212,8 +195,7 @@ typedef NS_ENUM(NSInteger, PickerTarget) {
 
 - (void)log:(NSString *)message {
     self.logView.text = [self.logView.text stringByAppendingFormat:@"%@\n", message];
-    NSRange bottom = NSMakeRange(self.logView.text.length - 1, 1);
-    [self.logView scrollRangeToVisible:bottom];
+    [self.logView scrollRangeToVisible:NSMakeRange(self.logView.text.length - 1, 1)];
 }
 
 @end

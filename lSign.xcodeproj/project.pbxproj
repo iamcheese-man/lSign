@@ -38,7 +38,7 @@
 		B002H /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		B003 /* MainViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MainViewController.m; sourceTree = "<group>"; };
 		B003H /* MainViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MainViewController.h; sourceTree = "<group>"; };
-		B004 /* SigningManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SigningManager.mm; sourceTree = "<group>"; };
+		B004 /* SigningManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = SigningManager.mm; sourceTree = "<group>"; };
 		B004H /* SigningManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SigningManager.h; sourceTree = "<group>"; };
 		B006 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B007 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };

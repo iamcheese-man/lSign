@@ -14,6 +14,7 @@
 		B107 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B007 /* UIKit.framework */; };
 		B108 /* ZSign.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B008 /* ZSign.dylib */; };
 		B109 /* ZSign.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = B008 /* ZSign.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+        B110 /* UniformTypeIdentifiers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B010 /* UniformTypeIdentifiers.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -42,6 +43,7 @@
 		B006 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B007 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		B008 /* ZSign.dylib */ = {isa = PBXFileReference; lastKnownFileType = compiled.mach-o.dylib; name = ZSign.dylib; path = Frameworks/ZSign.dylib; sourceTree = "<group>"; };
+        B010 /* UniformTypeIdentifiers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UniformTypeIdentifiers.framework; path = System/Library/Frameworks/UniformTypeIdentifiers.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -51,6 +53,7 @@
 			files = (
 				B107 /* UIKit.framework in Frameworks */,
 				B108 /* ZSign.dylib in Frameworks */,
+                B110 /* UniformTypeIdentifiers.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -92,6 +95,7 @@
 			children = (
 				B007 /* UIKit.framework */,
 				B008 /* ZSign.dylib */,
+                B010 /* UniformTypeIdentifiers.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";

@@ -2,200 +2,308 @@
 #import "SigningManager.h"
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
-typedef NS_ENUM(NSInteger, PickerTarget) {
-    PickerTargetIPA,
-    PickerTargetP12,
-    PickerTargetProvision
-};
-
 @interface MainViewController () <UIDocumentPickerDelegate>
-@property (nonatomic, strong) NSURL *ipaURL;
-@property (nonatomic, strong) NSURL *p12URL;
-@property (nonatomic, strong) NSURL *provisionURL;
-@property (nonatomic, assign) PickerTarget currentTarget;
+@property (nonatomic, strong) UIScrollView *scrollView;
+@property (nonatomic, strong) UIStackView *stackView;
+@property (nonatomic, strong) UILabel *titleLabel;
 @property (nonatomic, strong) UIButton *ipaButton;
 @property (nonatomic, strong) UIButton *p12Button;
-@property (nonatomic, strong) UIButton *provisionButton;
+@property (nonatomic, strong) UIButton *provButton;
 @property (nonatomic, strong) UITextField *passwordField;
-@property (nonatomic, strong) UITextField *bundleIDField;
+@property (nonatomic, strong) UITextField *bundleIdField;
 @property (nonatomic, strong) UITextField *appNameField;
 @property (nonatomic, strong) UITextField *appVersionField;
 @property (nonatomic, strong) UIButton *signButton;
 @property (nonatomic, strong) UITextView *logView;
-@property (nonatomic, strong) UIActivityIndicatorView *spinner;
+@property (nonatomic, strong, nullable) NSURL *ipaURL;
+@property (nonatomic, strong, nullable) NSURL *p12URL;
+@property (nonatomic, strong, nullable) NSURL *provURL;
+@property (nonatomic, strong, nullable) UIButton *currentPickingButton;
 @end
 
 @implementation MainViewController
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.title = @"lSign";
     self.view.backgroundColor = [UIColor systemBackgroundColor];
+    self.title = @"lSign";
     [self setupUI];
 }
 
+#pragma mark - UI Setup
+
 - (void)setupUI {
-    UIScrollView *scroll = [[UIScrollView alloc] init];
-    scroll.translatesAutoresizingMaskIntoConstraints = NO;
-    [self.view addSubview:scroll];
+    self.scrollView = [[UIScrollView alloc] init];
+    self.scrollView.translatesAutoresizingMaskIntoConstraints = NO;
+    [self.view addSubview:self.scrollView];
 
-    UIStackView *stack = [[UIStackView alloc] init];
-    stack.axis = UILayoutConstraintAxisVertical;
-    stack.spacing = 12;
-    stack.translatesAutoresizingMaskIntoConstraints = NO;
-    [scroll addSubview:stack];
+    self.stackView = [[UIStackView alloc] init];
+    self.stackView.axis = UILayoutConstraintAxisVertical;
+    self.stackView.spacing = 14;
+    self.stackView.alignment = UIStackViewAlignmentFill;
+    self.stackView.distribution = UIStackViewDistributionFill;
+    self.stackView.translatesAutoresizingMaskIntoConstraints = NO;
+    [self.scrollView addSubview:self.stackView];
 
-    self.ipaButton       = [self makePickerButton:@"Select IPA" tag:PickerTargetIPA];
-    self.p12Button       = [self makePickerButton:@"Select P12" tag:PickerTargetP12];
-    self.provisionButton = [self makePickerButton:@"Select MobileProvision" tag:PickerTargetProvision];
+    self.titleLabel = [[UILabel alloc] init];
+    self.titleLabel.text = @"IPA Signer";
+    self.titleLabel.font = [UIFont boldSystemFontOfSize:28];
+    self.titleLabel.textAlignment = NSTextAlignmentCenter;
+    [self.stackView addArrangedSubview:self.titleLabel];
 
-    self.passwordField   = [self makeField:@"P12 Password" secure:YES];
-    self.bundleIDField   = [self makeField:@"Bundle ID (optional)" secure:NO];
-    self.appNameField    = [self makeField:@"App Name (optional)" secure:NO];
-    self.appVersionField = [self makeField:@"Version (optional)" secure:NO];
+    self.ipaButton = [self makeFileButtonWithTitle:@"Select IPA"];
+    [self.ipaButton addTarget:self action:@selector(selectIPA) forControlEvents:UIControlEventTouchUpInside];
+    [self.stackView addArrangedSubview:self.ipaButton];
+
+    self.p12Button = [self makeFileButtonWithTitle:@"Select P12"];
+    [self.p12Button addTarget:self action:@selector(selectP12) forControlEvents:UIControlEventTouchUpInside];
+    [self.stackView addArrangedSubview:self.p12Button];
+
+    self.provButton = [self makeFileButtonWithTitle:@"Select Provision"];
+    [self.provButton addTarget:self action:@selector(selectProvision) forControlEvents:UIControlEventTouchUpInside];
+    [self.stackView addArrangedSubview:self.provButton];
+
+    self.passwordField = [self makeTextFieldWithPlaceholder:@"Certificate Password"];
+    self.passwordField.secureTextEntry = YES;
+    [self.stackView addArrangedSubview:self.passwordField];
+
+    self.bundleIdField = [self makeTextFieldWithPlaceholder:@"Optional Bundle ID Override"];
+    [self.stackView addArrangedSubview:self.bundleIdField];
+
+    self.appNameField = [self makeTextFieldWithPlaceholder:@"Optional App Name Override"];
+    [self.stackView addArrangedSubview:self.appNameField];
+
+    self.appVersionField = [self makeTextFieldWithPlaceholder:@"Optional App Version Override"];
+    [self.stackView addArrangedSubview:self.appVersionField];
 
     self.signButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    [self.signButton setTitle:@"Sign IPA" forState:UIControlStateNormal];
-    self.signButton.titleLabel.font = [UIFont boldSystemFontOfSize:17];
-    self.signButton.backgroundColor = [UIColor systemBlueColor];
-    [self.signButton setTitleColor:UIColor.whiteColor forState:UIControlStateNormal];
-    self.signButton.layer.cornerRadius = 10;
-    [self.signButton.heightAnchor constraintEqualToConstant:50].active = YES;
-    [self.signButton addTarget:self action:@selector(signTapped) forControlEvents:UIControlEventTouchUpInside];
+    self.signButton.translatesAutoresizingMaskIntoConstraints = NO;
 
-    self.spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];
-    self.spinner.hidesWhenStopped = YES;
-
-    self.logView = [[UITextView alloc] init];
-    self.logView.editable = NO;
-    self.logView.font = [UIFont monospacedSystemFontOfSize:12 weight:UIFontWeightRegular];
-    self.logView.backgroundColor = [UIColor secondarySystemBackgroundColor];
-    self.logView.layer.cornerRadius = 8;
-    self.logView.text = @"Logs will appear here...\n";
-    [self.logView.heightAnchor constraintEqualToConstant:200].active = YES;
-
-    for (UIView *v in @[
-        [self sectionLabel:@"Files"],
-        self.ipaButton, self.p12Button, self.provisionButton,
-        [self sectionLabel:@"Options"],
-        self.passwordField, self.bundleIDField, self.appNameField, self.appVersionField,
-        self.signButton, self.spinner,
-        [self sectionLabel:@"Log"],
-        self.logView
-    ]) {
-        [stack addArrangedSubview:v];
+    if (@available(iOS 15.0, *)) {
+        UIButtonConfiguration *config = [UIButtonConfiguration filledButtonConfiguration];
+        config.title = @"Sign IPA";
+        config.cornerStyle = UIButtonConfigurationCornerStyleLarge;
+        self.signButton.configuration = config;
+    } else {
+        [self.signButton setTitle:@"Sign IPA" forState:UIControlStateNormal];
+        self.signButton.backgroundColor = [UIColor systemBlueColor];
+        [self.signButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        self.signButton.layer.cornerRadius = 12.0;
     }
 
-    [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[scroll]|" options:0 metrics:nil views:@{@"scroll": scroll}]];
-    [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[scroll]|" options:0 metrics:nil views:@{@"scroll": scroll}]];
-    [stack.topAnchor constraintEqualToAnchor:scroll.topAnchor constant:16].active = YES;
-    [stack.bottomAnchor constraintEqualToAnchor:scroll.bottomAnchor constant:-16].active = YES;
-    [stack.leadingAnchor constraintEqualToAnchor:scroll.leadingAnchor constant:16].active = YES;
-    [stack.trailingAnchor constraintEqualToAnchor:scroll.trailingAnchor constant:-16].active = YES;
-    [stack.widthAnchor constraintEqualToAnchor:self.view.widthAnchor constant:-32].active = YES;
+    [self.signButton addTarget:self action:@selector(signTapped) forControlEvents:UIControlEventTouchUpInside];
+    [self.stackView addArrangedSubview:self.signButton];
+
+    self.logView = [[UITextView alloc] init];
+    self.logView.translatesAutoresizingMaskIntoConstraints = NO;
+    self.logView.editable = NO;
+    self.logView.font = [UIFont monospacedSystemFontOfSize:13 weight:UIFontWeightRegular];
+    self.logView.backgroundColor = [UIColor secondarySystemBackgroundColor];
+    self.logView.layer.cornerRadius = 12.0;
+    self.logView.text = @"Logs will appear here...";
+    [self.stackView addArrangedSubview:self.logView];
+
+    UILayoutGuide *guide = self.view.safeAreaLayoutGuide;
+
+    [NSLayoutConstraint activateConstraints:@[
+        [self.scrollView.topAnchor constraintEqualToAnchor:guide.topAnchor],
+        [self.scrollView.leadingAnchor constraintEqualToAnchor:guide.leadingAnchor],
+        [self.scrollView.trailingAnchor constraintEqualToAnchor:guide.trailingAnchor],
+        [self.scrollView.bottomAnchor constraintEqualToAnchor:guide.bottomAnchor],
+
+        [self.stackView.topAnchor constraintEqualToAnchor:self.scrollView.topAnchor constant:20],
+        [self.stackView.leadingAnchor constraintEqualToAnchor:self.scrollView.leadingAnchor constant:20],
+        [self.stackView.trailingAnchor constraintEqualToAnchor:self.scrollView.trailingAnchor constant:-20],
+        [self.stackView.bottomAnchor constraintEqualToAnchor:self.scrollView.bottomAnchor constant:-20],
+        [self.stackView.widthAnchor constraintEqualToAnchor:self.scrollView.widthAnchor constant:-40],
+
+        [self.signButton.heightAnchor constraintEqualToConstant:50],
+        [self.logView.heightAnchor constraintEqualToConstant:200]
+    ]];
 }
 
-- (UILabel *)sectionLabel:(NSString *)text {
-    UILabel *l = [[UILabel alloc] init];
-    l.text = text.uppercaseString;
-    l.font = [UIFont systemFontOfSize:12 weight:UIFontWeightSemibold];
-    l.textColor = [UIColor secondaryLabelColor];
-    return l;
-}
-
-- (UIButton *)makePickerButton:(NSString *)title tag:(PickerTarget)tag {
+- (UIButton *)makeFileButtonWithTitle:(NSString *)title {
     UIButton *btn = [UIButton buttonWithType:UIButtonTypeSystem];
-    btn.tag = tag;
-    [btn setTitle:title forState:UIControlStateNormal];
-    btn.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
-    btn.backgroundColor = [UIColor secondarySystemBackgroundColor];
-    btn.layer.cornerRadius = 10;
+    btn.translatesAutoresizingMaskIntoConstraints = NO;
+
+    if (@available(iOS 15.0, *)) {
+        UIButtonConfiguration *config = [UIButtonConfiguration tintedButtonConfiguration];
+        config.title = title;
+        config.cornerStyle = UIButtonConfigurationCornerStyleLarge;
+        btn.configuration = config;
+    } else {
+        [btn setTitle:title forState:UIControlStateNormal];
+        btn.backgroundColor = [UIColor tertiarySystemBackgroundColor];
+        [btn setTitleColor:[UIColor labelColor] forState:UIControlStateNormal];
+        btn.layer.cornerRadius = 12.0;
+    }
+
     [btn.heightAnchor constraintEqualToConstant:48].active = YES;
-    [btn addTarget:self action:@selector(pickerTapped:) forControlEvents:UIControlEventTouchUpInside];
     return btn;
 }
 
-- (UITextField *)makeField:(NSString *)placeholder secure:(BOOL)secure {
+- (UITextField *)makeTextFieldWithPlaceholder:(NSString *)placeholder {
     UITextField *tf = [[UITextField alloc] init];
+    tf.translatesAutoresizingMaskIntoConstraints = NO;
     tf.placeholder = placeholder;
-    tf.secureTextEntry = secure;
-    tf.backgroundColor = [UIColor secondarySystemBackgroundColor];
-    tf.layer.cornerRadius = 10;
-    tf.leftView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 14, 0)];
-    tf.leftViewMode = UITextFieldViewModeAlways;
-    [tf.heightAnchor constraintEqualToConstant:48].active = YES;
-    tf.autocorrectionType = UITextAutocorrectionTypeNo;
+    tf.borderStyle = UITextBorderStyleRoundedRect;
+    tf.clearButtonMode = UITextFieldViewModeWhileEditing;
     tf.autocapitalizationType = UITextAutocapitalizationTypeNone;
+    tf.autocorrectionType = UITextAutocorrectionTypeNo;
+    tf.spellCheckingType = UITextSpellCheckingTypeNo;
+    [tf.heightAnchor constraintEqualToConstant:48].active = YES;
     return tf;
 }
 
-- (void)pickerTapped:(UIButton *)sender {
-    self.currentTarget = (PickerTarget)sender.tag;
-    UIDocumentPickerViewController *picker = [[UIDocumentPickerViewController alloc] initForOpeningContentTypes:@[UTTypeData]];
+#pragma mark - File Pickers
+
+- (void)selectIPA {
+    self.currentPickingButton = self.ipaButton;
+    [self presentPickerForTypes:@[UTTypeData]];
+}
+
+- (void)selectP12 {
+    self.currentPickingButton = self.p12Button;
+    [self presentPickerForTypes:@[UTTypeData]];
+}
+
+- (void)selectProvision {
+    self.currentPickingButton = self.provButton;
+    [self presentPickerForTypes:@[UTTypeData]];
+}
+
+- (void)presentPickerForTypes:(NSArray<UTType *> *)types {
+    UIDocumentPickerViewController *picker = [[UIDocumentPickerViewController alloc] initForOpeningContentTypes:types];
     picker.delegate = self;
     picker.allowsMultipleSelection = NO;
     [self presentViewController:picker animated:YES completion:nil];
 }
 
+#pragma mark - UIDocumentPickerDelegate
+
 - (void)documentPicker:(UIDocumentPickerViewController *)controller didPickDocumentsAtURLs:(NSArray<NSURL *> *)urls {
-    NSURL *url = urls.firstObject;
-    if (!url) return;
-    [url startAccessingSecurityScopedResource];
-    NSString *name = url.lastPathComponent;
-    switch (self.currentTarget) {
-        case PickerTargetIPA:
-            self.ipaURL = url;
-            [self.ipaButton setTitle:[NSString stringWithFormat:@"IPA: %@", name] forState:UIControlStateNormal];
-            break;
-        case PickerTargetP12:
-            self.p12URL = url;
-            [self.p12Button setTitle:[NSString stringWithFormat:@"P12: %@", name] forState:UIControlStateNormal];
-            break;
-        case PickerTargetProvision:
-            self.provisionURL = url;
-            [self.provisionButton setTitle:[NSString stringWithFormat:@"Provision: %@", name] forState:UIControlStateNormal];
-            break;
+    NSURL *pickedURL = urls.firstObject;
+    if (!pickedURL) return;
+
+    [pickedURL startAccessingSecurityScopedResource];
+
+    if (self.currentPickingButton == self.ipaButton) {
+        self.ipaURL = pickedURL;
+        [self updateButton:self.ipaButton withURL:pickedURL fallback:@"Select IPA"];
+        [self appendLog:[NSString stringWithFormat:@"Selected IPA: %@", pickedURL.lastPathComponent]];
+    } else if (self.currentPickingButton == self.p12Button) {
+        self.p12URL = pickedURL;
+        [self updateButton:self.p12Button withURL:pickedURL fallback:@"Select P12"];
+        [self appendLog:[NSString stringWithFormat:@"Selected P12: %@", pickedURL.lastPathComponent]];
+    } else if (self.currentPickingButton == self.provButton) {
+        self.provURL = pickedURL;
+        [self updateButton:self.provButton withURL:pickedURL fallback:@"Select Provision"];
+        [self appendLog:[NSString stringWithFormat:@"Selected Provision: %@", pickedURL.lastPathComponent]];
+    }
+
+    self.currentPickingButton = nil;
+}
+
+- (void)documentPickerWasCancelled:(UIDocumentPickerViewController *)controller {
+    [self appendLog:@"File picking cancelled."];
+    self.currentPickingButton = nil;
+}
+
+#pragma mark - Button Label Updates
+
+- (void)updateButton:(UIButton *)button withURL:(NSURL *)url fallback:(NSString *)fallback {
+    NSString *title = url.lastPathComponent ?: fallback;
+
+    if (@available(iOS 15.0, *)) {
+        UIButtonConfiguration *config = button.configuration ?: [UIButtonConfiguration tintedButtonConfiguration];
+        config.title = title;
+        button.configuration = config;
+    } else {
+        [button setTitle:title forState:UIControlStateNormal];
     }
 }
 
-- (void)signTapped {
-    if (!self.ipaURL || !self.p12URL || !self.provisionURL) {
-        [self log:@"Error: Please select IPA, P12 and MobileProvision"];
-        return;
-    }
+#pragma mark - Signing
 
-    [self.spinner startAnimating];
-    self.signButton.enabled = NO;
-    [self log:@"Starting signing..."];
+- (void)signTapped {
+    [self.view endEditing:YES];
+
+    if (!self.ipaURL) { [self appendLog:@"Error: Please select an IPA file."]; return; }
+    if (!self.p12URL) { [self appendLog:@"Error: Please select a P12 certificate."]; return; }
+    if (!self.provURL) { [self appendLog:@"Error: Please select a provisioning profile."]; return; }
 
     NSString *password   = self.passwordField.text ?: @"";
-    NSString *bundleID   = self.bundleIDField.text.length   ? self.bundleIDField.text   : nil;
-    NSString *appName    = self.appNameField.text.length    ? self.appNameField.text    : nil;
-    NSString *appVersion = self.appVersionField.text.length ? self.appVersionField.text : nil;
+    NSString *bundleID   = self.bundleIdField.text.length   > 0 ? self.bundleIdField.text   : nil;
+    NSString *appName    = self.appNameField.text.length    > 0 ? self.appNameField.text    : nil;
+    NSString *appVersion = self.appVersionField.text.length > 0 ? self.appVersionField.text : nil;
+
+    [self appendLog:@"Starting signing process..."];
+    [self setSigningUIEnabled:NO];
 
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         NSString *result = [SigningManager signIPA:self.ipaURL
-                                              p12:self.p12URL
-                                        provision:self.provisionURL
-                                         password:password
-                                         bundleID:bundleID
-                                          appName:appName
-                                       appVersion:appVersion
-                                      logCallback:^(NSString *msg) {
-            dispatch_async(dispatch_get_main_queue(), ^{ [self log:msg]; });
+                                               p12:self.p12URL
+                                         provision:self.provURL
+                                          password:password
+                                          bundleID:bundleID
+                                           appName:appName
+                                        appVersion:appVersion
+                                       logCallback:^(NSString *msg) {
+            dispatch_async(dispatch_get_main_queue(), ^{ [self appendLog:msg]; });
         }];
 
         dispatch_async(dispatch_get_main_queue(), ^{
-            [self.spinner stopAnimating];
-            self.signButton.enabled = YES;
-            [self log:result];
+            [self appendLog:[NSString stringWithFormat:@"Result: %@", result ?: @"Unknown"]];
+            [self setSigningUIEnabled:YES];
+            [self showResultAlert:result];
         });
     });
 }
 
-- (void)log:(NSString *)message {
-    self.logView.text = [self.logView.text stringByAppendingFormat:@"%@\n", message];
+- (void)setSigningUIEnabled:(BOOL)enabled {
+    self.signButton.enabled  = enabled;
+    self.ipaButton.enabled   = enabled;
+    self.p12Button.enabled   = enabled;
+    self.provButton.enabled  = enabled;
+    self.passwordField.enabled  = enabled;
+    self.bundleIdField.enabled  = enabled;
+    self.appNameField.enabled   = enabled;
+    self.appVersionField.enabled = enabled;
+
+    if (@available(iOS 15.0, *)) {
+        UIButtonConfiguration *config = self.signButton.configuration;
+        config.showsActivityIndicator = !enabled;
+        config.title = enabled ? @"Sign IPA" : @"Signing...";
+        self.signButton.configuration = config;
+    } else {
+        [self.signButton setTitle:(enabled ? @"Sign IPA" : @"Signing...") forState:UIControlStateNormal];
+        self.signButton.alpha = enabled ? 1.0 : 0.7;
+    }
+}
+
+#pragma mark - Logging
+
+- (void)appendLog:(NSString *)message {
+    if (!message.length) return;
+    NSString *current = self.logView.text ?: @"";
+    self.logView.text = [current stringByAppendingFormat:@"\n%@", message];
     [self.logView scrollRangeToVisible:NSMakeRange(self.logView.text.length - 1, 1)];
+}
+
+#pragma mark - Result Alert
+
+- (void)showResultAlert:(NSString *)result {
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Done"
+                                                                   message:result ?: @"Unknown result"
+                                                            preferredStyle:UIAlertControllerStyleAlert];
+    if ([[NSFileManager defaultManager] fileExistsAtPath:result ?: @""]) {
+        [alert addAction:[UIAlertAction actionWithTitle:@"Share" style:UIAlertActionStyleDefault handler:^(UIAlertAction *a) {
+            UIActivityViewController *ac = [[UIActivityViewController alloc] initWithActivityItems:@[[NSURL fileURLWithPath:result]] applicationActivities:nil];
+            [self presentViewController:ac animated:YES completion:nil];
+        }]];
+    }
+    [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleCancel handler:nil]];
+    [self presentViewController:alert animated:YES completion:nil];
 }
 
 @end

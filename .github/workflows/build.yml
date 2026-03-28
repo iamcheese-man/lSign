@@ -1,0 +1,38 @@
+name: Build lSign IPA
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build
+        run: |
+          xcodebuild \
+            -project lSign.xcodeproj \
+            -scheme lSign \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            ONLY_ACTIVE_ARCH=NO
+
+      - name: Package IPA
+        run: |
+          APP=$(find build -name "*.app" | head -1)
+          mkdir -p Payload
+          cp -r "$APP" Payload/
+          zip -r lSign.ipa Payload/
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: lSign-ipa
+          path: lSign.ipa
+          retention-days: 14

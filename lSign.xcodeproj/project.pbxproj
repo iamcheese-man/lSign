@@ -224,7 +224,6 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 				LD_RUNPATH_SEARCH_PATHS = ("@executable_path/Frameworks", "$(inherited)");
                 OTHER_LDFLAGS = "-lz";
-                "SWIFT_OBJC_BRIDGING_HEADER" = "lSign/lSign-Bridging-Header.h";
 			};
 			name = Debug;
 		};
@@ -255,7 +254,6 @@
 				VALIDATE_PRODUCT = YES;
 				LD_RUNPATH_SEARCH_PATHS = ("@executable_path/Frameworks", "$(inherited)");
                 OTHER_LDFLAGS = "-lz";
-                "SWIFT_OBJC_BRIDGING_HEADER" = "lSign/lSign-Bridging-Header.h";
 			};
 			name = Release;
 		};

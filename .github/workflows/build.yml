@@ -23,6 +23,11 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             ONLY_ACTIVE_ARCH=NO 
 
+      - name: Embed ZSign.dylib
+        run: |
+             APP=$(find build -name "lSign.app" | head -1)
+             mkdir -p "$APP/Frameworks"
+             cp Frameworks/ZSign.dylib "$APP/Frameworks/ZSign.dylib"
 
       - name: Package IPA
         run: |

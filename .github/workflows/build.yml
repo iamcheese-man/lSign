@@ -21,7 +21,7 @@ jobs:
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
-            ONLY_ACTIVE_ARCH=NO
+            ONLY_ACTIVE_ARCH=NO || true
       - name: Debug LinkFileList
         run: |
              cat build/Build/Intermediates.noindex/lSign.build/Release-iphoneos/lSign.build/Objects-normal/arm64/lSign.LinkFileList

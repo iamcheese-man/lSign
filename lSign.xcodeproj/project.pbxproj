@@ -10,11 +10,10 @@
 		B101 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = B001 /* main.m */; };
 		B102 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B002 /* AppDelegate.m */; };
 		B103 /* MainViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B003 /* MainViewController.m */; };
-		B104 /* SigningManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = B004 /* SigningManager.mm */; };
+		B104 /* SigningManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = B004 /* SigningManager.mm */; settings = {COMPILER_FLAGS = "-x objective-c++"; }; };
 		B107 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B007 /* UIKit.framework */; };
 		B108 /* ZSign.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B008 /* ZSign.dylib */; };
 		B109 /* ZSign.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = B008 /* ZSign.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-        B110 /* UniformTypeIdentifiers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B010 /* UniformTypeIdentifiers.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -43,7 +42,6 @@
 		B006 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B007 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		B008 /* ZSign.dylib */ = {isa = PBXFileReference; lastKnownFileType = compiled.mach-o.dylib; name = ZSign.dylib; path = Frameworks/ZSign.dylib; sourceTree = "<group>"; };
-        B010 /* UniformTypeIdentifiers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UniformTypeIdentifiers.framework; path = System/Library/Frameworks/UniformTypeIdentifiers.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -53,7 +51,6 @@
 			files = (
 				B107 /* UIKit.framework in Frameworks */,
 				B108 /* ZSign.dylib in Frameworks */,
-                B110 /* UniformTypeIdentifiers.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -95,7 +92,6 @@
 			children = (
 				B007 /* UIKit.framework */,
 				B008 /* ZSign.dylib */,
-                B010 /* UniformTypeIdentifiers.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -205,7 +201,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-                HEADER_SEARCH_PATHS = ("$(PROJECT_DIR)/Frameworks/ZSign-headers", "$(inherited)");
 				ARCHS = arm64;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
@@ -227,7 +222,6 @@
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				LD_RUNPATH_SEARCH_PATHS = ("@executable_path/Frameworks", "$(inherited)");
-                OTHER_LDFLAGS = "-lz";
 			};
 			name = Debug;
 		};
@@ -235,7 +229,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-                HEADER_SEARCH_PATHS = ("$(PROJECT_DIR)/Frameworks/ZSign-headers", "$(inherited)");
 				ARCHS = arm64;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
@@ -257,7 +250,6 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
 				LD_RUNPATH_SEARCH_PATHS = ("@executable_path/Frameworks", "$(inherited)");
-                OTHER_LDFLAGS = "-lz";
 			};
 			name = Release;
 		};

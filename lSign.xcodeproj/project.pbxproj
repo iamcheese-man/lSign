@@ -12,20 +12,20 @@
 		B103 /* MainViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B003 /* MainViewController.m */; };
 		B104 /* SigningManager.m in Sources */ = {isa = PBXBuildFile; fileRef = B004 /* SigningManager.m */; };
 		B107 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B007 /* UIKit.framework */; };
-		B108 /* ZSign.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B008 /* ZSign.framework */; };
-		B109 /* ZSign.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = B008 /* ZSign.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		B108 /* ZSign.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B008 /* ZSign.dylib */; };
+		B109 /* ZSign.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = B008 /* ZSign.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		B023 /* Embed Frameworks */ = {
+		B023 /* Embed Libraries */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
-			dstSubfolderSpec = 10;
+			dstSubfolderSpec = 16;
 			files = (
-				B109 /* ZSign.framework in Embed Frameworks */,
+				B109 /* ZSign.dylib in Embed Libraries */,
 			);
-			name = "Embed Frameworks";
+			name = "Embed Libraries";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -41,7 +41,7 @@
 		B004H /* SigningManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SigningManager.h; sourceTree = "<group>"; };
 		B006 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B007 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
-		B008 /* ZSign.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ZSign.framework; path = Frameworks/ZSign.framework; sourceTree = "<group>"; };
+		B008 /* ZSign.dylib */ = {isa = PBXFileReference; lastKnownFileType = compiled.mach-o.dylib; name = ZSign.dylib; path = Frameworks/ZSign.dylib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -50,7 +50,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B107 /* UIKit.framework in Frameworks */,
-				B108 /* ZSign.framework in Frameworks */,
+				B108 /* ZSign.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -91,7 +91,7 @@
 			isa = PBXGroup;
 			children = (
 				B007 /* UIKit.framework */,
-				B008 /* ZSign.framework */,
+				B008 /* ZSign.dylib */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";

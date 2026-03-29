@@ -3,10 +3,13 @@
 An app that... signs app without bloat i guess.
 
 ---
-## Screenshots
+## App Preview
 
+- 1st Screenshot
+![SS1](screenshotsNTBC/IMG_0424.jpeg)
 
-
+- 2nd Screenshot
+![SS2](screenshotsNTBC/IMG_0425.jpeg)
 
 ---
 

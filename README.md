@@ -32,7 +32,7 @@ An actually LIGHTWEIGHT app that gives you the signing without install feature w
      
 - With Building (macOS)
   1. Clone the repository.
-  2. Open the `project.xcodeproj` file in XCode.
+  2. Open the `lSign.xcodeproj` folder in XCode.
   3. Sign the app with your certificate.
   4. Build and install to your iOS/iPadOS device.
      

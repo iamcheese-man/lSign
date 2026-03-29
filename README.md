@@ -24,4 +24,26 @@ An actually LIGHTWEIGHT app that gives you the signing without install feature w
 
 ---
 
+## How to get IPA
+
+- Without Building
+  1. Go to "Releases" tab.
+  2. Download the latest IPA.
+     
+- With Building (macOS)
+  1. Clone the repository.
+  2. Open the `project.xcodeproj` file in XCode.
+  3. Sign the app with your certificate.
+  4. Build and install to your iOS/iPadOS device.
+     
+- With Building (Github Actions)
+  1. Clone the repository via Use Template.
+  2. Go to "Actions" tab.
+  3. Press on "Workflows" then "Build lSign IPA" listed.
+  4. Press "Run Workflow".
+  5. Wait for all the jobs to finish, then go to Artifacts (scroll to bottom), then download the IPA zip file.
+  6. Unzip the file locally and install.
+
+---
+
 **DISCLAIMER** : You are responsible for how you use this tool, including piracy or other illegal activities.

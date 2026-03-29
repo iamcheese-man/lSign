@@ -2,6 +2,8 @@
 
 An actually LIGHTWEIGHT app that gives you the signing without install feature when distributing IPA's!
 
+![AppIcon](Assets.xcassets/AppIcon.appiconset3/AppIcon~ios-marketing.png)
+
 ---
 ## App Preview
 

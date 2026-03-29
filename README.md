@@ -1,6 +1,6 @@
 ### lSign
 
-An app that... signs app without bloat i guess.
+An actually LIGHTWEIGHT app that gives you the signing without install feature when distributing IPA's!
 
 ---
 ## App Preview

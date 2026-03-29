@@ -143,6 +143,7 @@
 			isa = PBXGroup;
 			children = (
 				B006 /* Info.plist */,
+                B300 /* AppIcon.appiconset */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -202,6 +203,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+            B300 /* AppIcon.appiconset */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -4,7 +4,10 @@ An actually LIGHTWEIGHT app that gives you the signing without install feature w
 
 ---
 ## App Preview
+
 - Context: lSign is running inside LiveContainer, hence why the duplicate container IDs.
+- For LiveContainer users, toggle on "Fix File Picker" in App Settings before trying to sideload an IPA.
+
 - 1st Screenshot
 ![SS1](screenshotsNTBC/IMG_0424.jpeg)
 

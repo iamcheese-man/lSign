@@ -26,7 +26,7 @@ An actually LIGHTWEIGHT app that gives you the signing without install feature w
 
 ---
 
-## How to get IPA
+## How to build/install lSign IPA
 
 - Without Building
   1. Go to "Releases" tab.

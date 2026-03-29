@@ -24,4 +24,4 @@ An actually LIGHTWEIGHT app that gives you the signing without install feature w
 
 ---
 
-**DISCLAIMER** : You are responsible for piracy or other illegal stuff.
+**DISCLAIMER** : You are responsible for how you use this tool, including piracy or other illegal activities.

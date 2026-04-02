@@ -11,6 +11,7 @@
 		B102 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B002 /* AppDelegate.m */; };
 		B103 /* MainViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B003 /* MainViewController.m */; };
 		B104 /* SigningManager.m in Sources */ = {isa = PBXBuildFile; fileRef = B004 /* SigningManager.m */; };
+        B105 /* InstallViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B005 /* InstallViewController.m */; };
 		B107 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B007 /* UIKit.framework */; };
 		B108 /* ZSign.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B008 /* ZSign.dylib */; };
 		B109 /* ZSign.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = B008 /* ZSign.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -44,6 +45,8 @@
 		B003H /* MainViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MainViewController.h; sourceTree = "<group>"; };
 		B004 /* SigningManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SigningManager.m; sourceTree = "<group>"; };
 		B004H /* SigningManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SigningManager.h; sourceTree = "<group>"; };
+        B005 /* InstallViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = InstallViewController.m; sourceTree = "<group>"; };
+		B005H /* InstallViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InstallViewController.h; sourceTree = "<group>"; };
 		B006 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B007 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		B008 /* ZSign.dylib */ = {isa = PBXFileReference; lastKnownFileType = compiled.mach-o.dylib; name = ZSign.dylib; path = Frameworks/ZSign.dylib; sourceTree = "<group>"; };
@@ -114,6 +117,8 @@
 			children = (
 				B003H /* MainViewController.h */,
 				B003 /* MainViewController.m */,
+				B005H /* InstallViewController.h */,
+				B005 /* InstallViewController.m */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -216,6 +221,7 @@
 				B102 /* AppDelegate.m in Sources */,
 				B103 /* MainViewController.m in Sources */,
 				B104 /* SigningManager.m in Sources */,
+                B105 /* InstallViewController.m in Sources */,
 				B111 /* unzip.c in Sources */,
 				B112 /* zip.c in Sources */,
 				B113 /* ioapi.c in Sources */,

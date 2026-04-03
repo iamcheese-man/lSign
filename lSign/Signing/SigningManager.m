@@ -57,8 +57,15 @@
         [fm fileExistsAtPath:fullPath isDirectory:&isDir];
         if (isDir) continue;
 
+        NSString *ext = file.pathExtension.lowercaseString;
+        BOOL storeOnly = [@[@"", @"dylib", @"so", @"0", @"car"] containsObject:ext]
+                      || [file hasSuffix:@"_CodeSignature/CodeResources"];
+
+        int method = storeOnly ? Z_STORED : Z_DEFLATED;
+        int level  = storeOnly ? 0 : Z_DEFAULT_COMPRESSION;
+
         zip_fileinfo zi = {};
-        zipOpenNewFileInZip(zf, file.UTF8String, &zi, NULL, 0, NULL, 0, NULL, Z_DEFLATED, Z_DEFAULT_COMPRESSION);
+        zipOpenNewFileInZip(zf, file.UTF8String, &zi, NULL, 0, NULL, 0, NULL, method, level);
         NSData *data = [NSData dataWithContentsOfFile:fullPath];
         zipWriteInFileInZip(zf, data.bytes, (unsigned)data.length);
         zipCloseFileInZip(zf);
